@@ -7,27 +7,10 @@
 
 import UIKit
 
-class PetsListViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
+class PetsListViewController: UIViewController {
     
     var data: [Pet] = []
-    private var dataManager = DataManager()
-    
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return data.count
-    }
-    
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        guard let cell = tableView.dequeueReusableCell(withIdentifier: "PetTableViewCell", for: indexPath) as? PetTableViewCell else {
-            return UITableViewCell()
-        }
-        cell.set(pet: data[indexPath.row])
-        return cell
-    }
-    
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        tableView.deselectRow(at: indexPath, animated: true)
-        navigationController?.pushViewController(PetDetailsViewController(pet: data[indexPath.row]), animated: true)
-    }
+    var petsDataService = PetsDataService()
     
     private lazy var tableView: UITableView = {
         let tableView = UITableView()
@@ -42,6 +25,7 @@ class PetsListViewController: UIViewController, UITableViewDelegate, UITableView
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        petsDataService.delegate = self
         setupView()
         addSubviews()
         setupTableHeaderView()
@@ -78,21 +62,46 @@ class PetsListViewController: UIViewController, UITableViewDelegate, UITableView
     }
     
     private func fetchAllPets() {
-        dataManager.request(url: URL(string: "https://my-json-server.typicode.com/giovannamoeller/pets-api/pets")!) { result in
-            DispatchQueue.main.async {
-                switch result {
-                case .success(let result):
-                    self.data = result
-                    self.tableView.reloadData()
-                case .failure(let error):
-                    print(error)
-                }
-            }
-        }
+        petsDataService.fetchPets()
     }
     
     override func viewSafeAreaInsetsDidChange() {
         setupConstraints()
     }
     
+}
+
+extension PetsListViewController: PetsDataServiceDelegate {
+    func fetchedSuccesfully(_ pets: [Pet]) {
+        self.data = pets
+        tableView.reloadData()
+    }
+    
+    func failedToFetch(_ error: NetworkingError) {
+        print("Failed to fetch pets data")
+    }
+    
+    
+}
+
+
+// MARK: Table View Datasource and Delegate
+extension PetsListViewController: UITableViewDelegate, UITableViewDataSource {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return data.count
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: "PetTableViewCell", for: indexPath) as? PetTableViewCell else {
+            return UITableViewCell()
+        }
+        cell.set(pet: data[indexPath.row])
+        return cell
+    }
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        tableView.deselectRow(at: indexPath, animated: true)
+        navigationController?.pushViewController(PetDetailsViewController(pet: data[indexPath.row]), animated: true)
+    }
+
 }
