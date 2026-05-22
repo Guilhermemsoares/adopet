@@ -14,8 +14,13 @@ protocol PetsDataServiceDelegate: AnyObject {
 
 class PetsDataService {
     
-    private var networkingService: NetworkingProtocol = URLSessionNetworking()
+    private var networkingService: NetworkingProtocol
     weak var delegate: PetsDataServiceDelegate?
+        
+    init(networkingService: NetworkingProtocol, delegate: PetsDataServiceDelegate? = nil) {
+        self.networkingService = networkingService
+        self.delegate = delegate
+    }
     
     func fetchPets() {
         guard let url = URL(string: "https://my-json-server.typicode.com/alura-cursos/pets-api/pets") else { return }

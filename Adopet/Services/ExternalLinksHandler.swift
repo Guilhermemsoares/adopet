@@ -9,7 +9,11 @@ import UIKit
 
 class ExternalLinksHandler {
     
-    private var urlHandler = URLHandler()
+    private var urlHandler: URLHandler
+    
+    init(urlHandler: URLHandler = URLHandler()) {
+        self.urlHandler = urlHandler
+    }
     
     func openTelephoneUrl(phoneNumber: String) {
         if let phoneNumberURL = URL(string: "tel://\(phoneNumber)") {
